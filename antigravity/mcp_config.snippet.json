@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "agent-registry": {
+      "serverUrl": "https://agentregistry.googleapis.com/mcp",
+      "headers": {
+        "X-Goog-User-Project": "praveenamylavarapu-july2022"
+      }
+    }
+  }
+}

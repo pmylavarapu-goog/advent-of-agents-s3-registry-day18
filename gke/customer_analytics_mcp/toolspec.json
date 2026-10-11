@@ -1,0 +1,95 @@
+{
+  "tools": [
+    {
+      "name": "query_kpi_summary",
+      "description": "Retrieves aggregated quarterly revenue and churn KPIs for a region.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "region": {
+            "type": "string",
+            "description": "Geographic region name (e.g., 'NA', 'EMEA', 'APAC', 'GLOBAL')."
+          },
+          "quarter": {
+            "type": "string",
+            "description": "Fiscal quarter identifier (e.g., 'Q3-2026', 'Q4-2026')."
+          }
+        },
+        "required": ["region"]
+      },
+      "isReadOnly": true,
+      "isDestructive": false,
+      "isIdempotent": true,
+      "isOpenWorld": false,
+      "annotations": {
+        "title": "Query KPI Summary",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "create_data_quality_ticket",
+      "description": "Opens a data quality incident ticket for the Data Engineering on-call team.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "dataset_name": {
+            "type": "string",
+            "description": "Target dataset or table name (e.g., 'prod_customer_360.revenue_daily')."
+          },
+          "issue_summary": {
+            "type": "string",
+            "description": "Description of the anomaly or schema drift observed."
+          },
+          "severity": {
+            "type": "string",
+            "description": "Incident priority ('P1', 'P2', or 'P3')."
+          }
+        },
+        "required": ["dataset_name", "issue_summary"]
+      },
+      "isReadOnly": false,
+      "isDestructive": false,
+      "isIdempotent": false,
+      "isOpenWorld": true,
+      "annotations": {
+        "title": "Create Data Quality Ticket",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "purge_customer_table",
+      "description": "DESTRUCTIVE ADMIN TOOL: Permanently purges rows from a customer analytics table.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "table_name": {
+            "type": "string",
+            "description": "Name of the table to purge (e.g., 'customers_prod')."
+          },
+          "confirm_purge": {
+            "type": "boolean",
+            "description": "Whether purge confirmation was supplied."
+          }
+        },
+        "required": ["table_name"]
+      },
+      "isReadOnly": false,
+      "isDestructive": true,
+      "isIdempotent": false,
+      "isOpenWorld": false,
+      "annotations": {
+        "title": "Purge Customer Table",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    }
+  ]
+}

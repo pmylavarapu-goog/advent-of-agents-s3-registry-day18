@@ -1,0 +1,68 @@
+# Advent of Agents S3 — Day 18: Data Engineering Persona on GKE
+# WHY THIS SURFACE: Data Engineering packages shared enterprise data tools as
+# Kubernetes microservices alongside their pipelines on GKE.
+# WHAT HAPPENS AUTOMATICALLY: GKE's in-cluster controller detects the
+# `registry.gke.io/functional-type: "MCP_SERVER"` label, introspects `/mcp`
+# inside the cluster, and automatically registers `customer-analytics-mcp` and
+# its 3 tools (`query_kpi_summary`, `create_data_quality_ticket`,
+# `purge_customer_table`) into Agent Registry!
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customer-analytics-mcp
+  namespace: default
+  labels:
+    app: customer-analytics-mcp
+    # GKE detects this label and automatically registers the deployment as an MCP Server in Agent Registry
+    registry.gke.io/functional-type: "MCP_SERVER"
+  annotations:
+    # In-cluster URL where the GKE controller introspects this MCP server
+    modelcontextprotocol.info/urls: |
+      - http://customer-analytics-mcp.default.svc.cluster.local:8080/mcp
+    # Structural capabilities for the MCP server card
+    modelcontextprotocol.info/capabilities: |
+      card:
+        endpoint: "/mcp"
+        port: "8080"
+        protocol: "HTTP"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customer-analytics-mcp
+  template:
+    metadata:
+      labels:
+        app: customer-analytics-mcp
+    spec:
+      containers:
+      - name: server
+        image: gcr.io/praveenamylavarapu-july2022/customer-analytics-mcp:1.0.0
+        ports:
+        - containerPort: 8080
+        env:
+        - name: PORT
+          value: "8080"
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: customer-analytics-mcp
+  namespace: default
+  labels:
+    app: customer-analytics-mcp
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    app: customer-analytics-mcp

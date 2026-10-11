@@ -1,0 +1,38 @@
+[
+  {
+    "description": "Allow Gemini Enterprise core assistant to perform MCP discovery and lifecycle handshakes on registered endpoints",
+    "effect": "ALLOW",
+    "principals": [
+      "principal://agents.global.org-324766703705.system.id.goog/resources/discoveryengine/projects/111200009617/locations/global/engines/advent-day18-ge/assistants/default_assistant/agents/default/core_assistant",
+      "principal://agents.global.org-324766703705.system.id.goog/resources/discoveryengine/projects/111200009617/locations/global/engines/gemini-enterprise-pravs_1765161473960/assistants/default_assistant/agents/default/core_assistant"
+    ],
+    "operation": {
+      "permissions": [
+        "iap.googleapis.com/resources.egressViaIAP"
+      ]
+    },
+    "conditions": {
+      "iap.googleapis.com": {
+        "expression": "destination.is_registered == true && destination.agent_registry.mcp_server.method != 'tools/call'"
+      }
+    }
+  },
+  {
+    "description": "Allow Gemini Enterprise core assistant to invoke read/support tools (query_kpi_summary, create_data_quality_ticket); implicitly DENY destructive purge_customer_table",
+    "effect": "ALLOW",
+    "principals": [
+      "principal://agents.global.org-324766703705.system.id.goog/resources/discoveryengine/projects/111200009617/locations/global/engines/advent-day18-ge/assistants/default_assistant/agents/default/core_assistant",
+      "principal://agents.global.org-324766703705.system.id.goog/resources/discoveryengine/projects/111200009617/locations/global/engines/gemini-enterprise-pravs_1765161473960/assistants/default_assistant/agents/default/core_assistant"
+    ],
+    "operation": {
+      "permissions": [
+        "iap.googleapis.com/resources.egressViaIAP"
+      ]
+    },
+    "conditions": {
+      "iap.googleapis.com": {
+        "expression": "destination.is_registered == true && destination.agent_registry.mcp_server.method == 'tools/call' && (destination.agent_registry.mcp_server.tool.name == 'query_kpi_summary' || destination.agent_registry.mcp_server.tool.name == 'create_data_quality_ticket')"
+      }
+    }
+  }
+]

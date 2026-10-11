@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "v1",
+  "displayName": "AWS Fraud Detection Agent",
+  "description": "Cross-cloud A2A agent running on AWS EKS that evaluates real-time payment risk.",
+  "skills": [
+    {
+      "name": "score_transaction",
+      "description": "Evaluates a payment transaction payload for fraud anomalies and velocity spikes."
+    },
+    {
+      "name": "quarantine_merchant_account",
+      "description": "Places a temporary compliance hold on a flagged merchant account."
+    }
+  ]
+}

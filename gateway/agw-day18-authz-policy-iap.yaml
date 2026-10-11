@@ -1,0 +1,10 @@
+name: agw-day18-authz-policy-iap
+target:
+  resources:
+    - "projects/praveenamylavarapu-july2022/locations/us-central1/agentGateways/agw-day18"
+policyProfile: REQUEST_AUTHZ
+action: CUSTOM
+customProvider:
+  authzExtension:
+    resources:
+      - "projects/praveenamylavarapu-july2022/locations/us-central1/authzExtensions/agw-day18-svc-ext-authz-iap"

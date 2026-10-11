@@ -1,0 +1,6 @@
+name: agw-day18-svc-ext-authz-iap
+service: iap.googleapis.com
+failOpen: false
+timeout: 1s
+metadata:
+  iapPolicyVersion: "V2"

@@ -1,0 +1,16 @@
+name: agw-day18
+description: "Agent Gateway for Advent of Agents Day 18 governed by Agent Registry"
+protocols:
+  - MCP
+googleManaged:
+  governedAccessPath: AGENT_TO_ANYWHERE
+registries:
+  - "//agentregistry.googleapis.com/projects/praveenamylavarapu-july2022/locations/us-central1"
+networkConfig:
+  egress:
+    networkAttachment: projects/praveenamylavarapu-july2022/regions/us-central1/networkAttachments/psc-na-us-central1-agw
+  dnsPeeringConfig:
+    domains:
+      - run.app.
+    targetProject: praveenamylavarapu-july2022
+    targetNetwork: projects/praveenamylavarapu-july2022/global/networks/vnet-day18
