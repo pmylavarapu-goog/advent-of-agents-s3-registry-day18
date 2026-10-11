@@ -2,17 +2,17 @@ import { DayContent } from '../types';
 
 export const day18: DayContent = {
   day: 18,
-  title: "Agent Registry: Single Source of Truth",
-  summary: "Centralize discovery and zero-trust governance of AI agents, MCP servers, and tools across BigQuery, GKE, Antigravity IDE, ADK + Cloud Run, and Gemini Enterprise using Agent Registry.",
+  title: "Agent Registry: How Do You Discover and Govern Every AI Agent and MCP Tool?",
+  summary: "How do you discover and govern every AI agent and MCP tool across your organization without hardcoding URLs or slowing teams down? Use Agent Registry as your automatic single source of truth across BigQuery, GKE, Antigravity IDE, ADK on Cloud Run, and Gemini Enterprise.",
   tags: ["Agent Registry", "Governance", "MCP", "ADK", "Gemini Enterprise", "Agent Gateway"],
   icon: "🗂️",
   resourceLink: "https://docs.cloud.google.com/agent-registry/overview",
   codeSnippets: [
     {
-      title: "Data Engineering & Developer Personas: GKE MCP Auto-Discovery & Antigravity IDE",
-      filename: "01_gke_and_antigravity_mcp.yaml",
+      title: "1. Auto-Introspect a GKE MCP Server & Discover It in Antigravity IDE",
+      filename: "customer_analytics_mcp.yaml",
       language: "yaml",
-      code: `# 1. Data Engineering Persona (GKE): Deploy customer-analytics-mcp with Agent Registry labels
+      code: `# Deploy a custom FastMCP server on GKE with Agent Registry discovery labels
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -21,7 +21,7 @@ metadata:
     # Instructs GKE's in-cluster controller to register the workload in Agent Registry
     registry.gke.io/functional-type: "MCP_SERVER"
   annotations:
-    # Enables in-cluster introspection of the Streamable HTTP (/mcp) endpoint & tool schemas
+    # Enables automatic introspection of the Streamable HTTP (/mcp) endpoint & tool schemas
     modelcontextprotocol.info/urls: |
       urls:
       - endpoint: /mcp
@@ -44,26 +44,24 @@ spec:
         ports:
         - containerPort: 8080
 ---
-# 2. Developer Persona (Antigravity IDE / Gemini CLI): ~/.gemini/config/mcp_config.json
+# Connect Antigravity IDE / Gemini CLI (~/.gemini/config/mcp_config.json) to Agent Registry:
 # {
 #   "mcpServers": {
 #     "agent-registry": {
 #       "serverUrl": "https://agentregistry.googleapis.com/mcp",
-#       "headers": {
-#         "X-Goog-User-Project": "YOUR_PROJECT_ID"
-#       }
+#       "headers": { "X-Goog-User-Project": "YOUR_PROJECT_ID" }
 #     }
 #   }
 # }`
     },
     {
-      title: "Application Team Persona: ADK Dynamic Tool Discovery & Cloud Run Auto-Registration",
-      filename: "03_adk_agent_and_cloud_run.py",
+      title: "2. Dynamically Bind Registered MCP Tools in ADK & Auto-Register on Cloud Run",
+      filename: "agent.py",
       language: "python",
       code: `from google.adk.agents.llm_agent import LlmAgent
 from google.adk.integrations.agent_registry import AgentRegistry
 
-# 1. Dynamically resolve customer-analytics-mcp from Agent Registry (zero hardcoded URLs!)
+# Dynamically resolve customer-analytics-mcp from Agent Registry (zero hardcoded URLs!)
 registry_client = AgentRegistry(
     project_id="YOUR_PROJECT_ID",
     location="us-central1",
@@ -82,7 +80,7 @@ root_agent = LlmAgent(
     tools=[analytics_toolset],
 )
 
-# 2. Deploy to Cloud Run with automatic Agent Identity + Agent Registry cataloging:
+# Deploy to Cloud Run with automatic SPIFFE Agent Identity + Agent Registry cataloging:
 # gcloud beta run deploy revenue-insights-agent \\
 #   --source=./adk_agent \\
 #   --region=us-central1 \\
@@ -90,8 +88,8 @@ root_agent = LlmAgent(
 #   --identity-type=agent-identity`
     },
     {
-      title: "Business User & Security Admin: Agent Gateway + IAP v2 Tool-Level Governance",
-      filename: "04_gateway_uap_rules.json",
+      title: "3. Enforce Tool-Level Least Privilege at Agent Gateway with IAP v2 & Agent Registry",
+      filename: "day18-analytics-uap-rules.json",
       language: "json",
       code: `[
   {
@@ -129,41 +127,37 @@ root_agent = LlmAgent(
   ],
   links: [
     {
+      label: "Codelab: Govern Gemini Enterprise MCP Tool Calls with Agent Gateway & Agent Registry",
+      url: "https://codelabs.developers.google.com/agent-gateway-gemini-enterprise",
+      description: "Hands-on codelab to deploy a custom MCP server, register it in Agent Registry, and enforce tool-level IAM policies with Agent Gateway."
+    },
+    {
       label: "Agent Registry Overview",
       url: "https://docs.cloud.google.com/agent-registry/overview",
       description: "Centralized catalog to store, discover, and govern agents, MCP servers, and tools."
     },
     {
-      label: "Automatic Registration Guide",
+      label: "Automatic Registration Quickstart (BigQuery, GKE, Cloud Run, Agent Runtime)",
       url: "https://docs.cloud.google.com/agent-registry/automatic-registration",
-      description: "Configure automatic registration across BigQuery, Gemini Enterprise, Agent Runtime, Cloud Run, and GKE."
+      description: "Configure zero-touch automatic registration across Google Cloud runtimes."
     },
     {
-      label: "Connect Agents to Registered Tools (ADK)",
+      label: "Connect ADK Agents to Registered Tools",
       url: "https://docs.cloud.google.com/agent-registry/connect-agents-tools",
       description: "Use google.adk.integrations.agent_registry.AgentRegistry to dynamically bind MCP toolsets."
     },
     {
-      label: "Agent Registry Data Model & Identifiers",
+      label: "Agent Registry Identifiers & Policy Attributes",
       url: "https://docs.cloud.google.com/agent-registry/identity-and-identifiers",
-      description: "Understand Agent and MCP Server URNs, principals, and Agent Gateway CEL attributes."
+      description: "Reference for Agent and MCP Server URNs, principals, and Agent Gateway CEL attributes."
     }
   ],
   description: `
-**Day 18 of Google's Advent of Agents — Season 3**
+**How do you discover and govern every AI agent and MCP tool across your organization without hardcoding URLs or slowing teams down?**
 
-In every Google Cloud organization, different personas choose different surfaces for their everyday jobs: **Data Analysts** enable managed Google Cloud APIs like BigQuery, **Data Engineers** deploy custom MCP servers on **GKE**, **Developers** prototype in **Antigravity IDE**, **Application Teams** ship **ADK** agents on **Cloud Run**, and **Business Users** chat in **Gemini Enterprise**. Without a unified catalog, this creates a visibility gap of duplicate tools and ungoverned access. **Agent Registry** in **Gemini Enterprise Agent Platform** solves this by acting as the automatic **Single Source of Truth** across all four quadrants of the agent ecosystem:
+In a real Google Cloud environment, different teams build and consume AI capabilities on different surfaces: data analysts enable managed APIs like BigQuery, data engineers deploy custom Model Context Protocol (MCP) servers on GKE, developers prototype in Antigravity IDE, application teams ship Agent Development Kit (ADK) services on Cloud Run, and business users query Gemini Enterprise. Without a unified control plane, teams rebuild duplicate tools, hardcode brittle service URLs into agent code, and leave security administrators blind to which tools an agent can invoke. **Agent Registry** in **Gemini Enterprise Agent Platform** solves this by acting as an automatic, centralized **Single Source of Truth** that indexes \`Agent\`, \`McpServer\`, \`Skill\`, and \`Endpoint\` resources with canonical URNs (\`urn:agent:...\`, \`urn:mcp:...\`) and tool safety annotations (\`readOnlyHint\`, \`destructiveHint\`).
 
-1. **Managed Google Cloud MCP Servers & Agents (Data Analyst & Platform Admin)**: Enabling APIs like \`bigquery.googleapis.com\` or \`dataplex.googleapis.com\` automatically backfills Google-managed remote MCP servers (\`urn:mcp:googleapis.com:*\`) and built-in Gemini Enterprise & Agent Runtime agents into Agent Registry with zero configuration.
-2. **Custom MCP Servers on GKE & Developer IDE Discovery (Data Engineering & Developer)**: Labeling a GKE Deployment with \`registry.gke.io/functional-type: "MCP_SERVER"\` and \`modelcontextprotocol.info/capabilities: "true"\` triggers in-cluster introspection of its \`/mcp\` endpoint and tool safety annotations (\`readOnlyHint\`, \`destructiveHint\`). Developers connecting **Antigravity IDE** to \`https://agentregistry.googleapis.com/mcp\` immediately discover those governed tools in natural language.
-3. **Custom Agents with ADK & Cloud Run (Application Team)**: Application engineers use \`google.adk.integrations.agent_registry.AgentRegistry\` (\`get_mcp_toolset\`) to dynamically bind registered MCP servers without hardcoding URLs, and deploy to **Cloud Run** with \`--functional-type=agent --identity-type=agent-identity\` for automatic registration and cryptographic **Agent Identity**.
-4. **Zero-Trust Tool Governance in Gemini Enterprise (Business User & Security Admin)**: Importing a registered MCP server (\`REGISTRY_MCP\`) into **Gemini Enterprise** and routing egress through **Agent Gateway** lets **IAP v2 Unified Access Policies** evaluate \`destination.is_registered\` and \`destination.agent_registry.mcp_server.tool.name\` on every call — permitting safe read-only tools (\`200 ALLOWED\`) while blocking destructive tools (\`403 DENIED\`) at the network edge.
-
-**Resources:**
-- [Agent Registry Overview](https://docs.cloud.google.com/agent-registry/overview)
-- [Use Automatic Registration (BigQuery, GKE, Cloud Run, Agent Runtime)](https://docs.cloud.google.com/agent-registry/automatic-registration)
-- [Connect ADK Agents to Registered Tools](https://docs.cloud.google.com/agent-registry/connect-agents-tools)
-- [Identity and Identifiers in Agent Registry](https://docs.cloud.google.com/agent-registry/identity-and-identifiers)
+Under the hood, Agent Registry combines zero-touch runtime ingestion with dynamic discovery and network-edge enforcement. Enabling Google Cloud APIs (\`bigquery.googleapis.com\`, \`dataplex.googleapis.com\`) automatically backfills managed remote MCP servers in \`global\`, while deploying a GKE workload with \`registry.gke.io/functional-type: "MCP_SERVER"\` or a Cloud Run service with \`--functional-type=agent --identity-type=agent-identity\` triggers automatic endpoint introspection and SPIFFE identity binding. Developers can then query \`https://agentregistry.googleapis.com/mcp\` directly from Antigravity IDE to discover existing tools, application teams can dynamically bind registered MCP servers at runtime using \`AgentRegistry.get_mcp_toolset()\` in ADK without hardcoding URLs, and security admins can attach **Agent Gateway** with **IAP v2 Unified Access Policies** (\`destination.is_registered\` and \`destination.agent_registry.mcp_server.tool.name\`) so Gemini Enterprise assistants can execute safe read-only tools (\`200 ALLOWED\`) while destructive tools (\`403 DENIED\`) are blocked at the network edge.
 `,
   videoURL: "TODO"
 };
