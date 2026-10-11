@@ -8,83 +8,55 @@ terraform {
   }
 }
 
-variable "central_project_id" {
-  description = "Central governance Google Cloud project ID hosting Agent Registry"
+variable "project_id" {
+  description = "Google Cloud project ID hosting Agent Registry"
   type        = string
+  default     = "praveenamylavarapu-july2022"
 }
 
-variable "spoke_project_id" {
-  description = "Spoke Google Cloud project ID where remote workloads run"
+variable "project_number" {
+  description = "Google Cloud project number"
   type        = string
-  default     = "spoke-payments-prod"
+  default     = "111200009617"
 }
 
 variable "region" {
-  description = "Agent Registry region (must match central Egress Gateway region)"
+  description = "Agent Registry and Agent Gateway region"
   type        = string
   default     = "us-central1"
 }
 
-# 1. Register an External / Multi-Cloud A2A Agent (e.g., running on AWS or Azure)
-# Indexes the Agent Card and A2A skills for unified discovery
-resource "google_agent_registry_service" "aws_fraud_a2a_agent" {
-  project      = var.central_project_id
+# 1. Register Data Engineering's Customer Analytics MCP Server & Tool Specification
+resource "google_agent_registry_service" "customer_analytics_mcp" {
+  project      = var.project_id
   location     = var.region
-  service_id   = "aws-fraud-agent"
-  display_name = "AWS Fraud Detection Agent"
+  service_id   = "customer-analytics-mcp"
+  display_name = "customer-analytics-mcp"
+  description  = "Enterprise Customer & Revenue Analytics MCP Server (Data Engineering Team)."
 
-  agent_spec {
-    type = "A2A_AGENT_CARD"
-    content = jsonencode({
-      schemaVersion = "v1"
-      displayName   = "AWS Fraud Detection Agent"
-      description   = "Cross-cloud A2A agent running on AWS EKS that evaluates real-time payment risk."
-      skills = [
-        {
-          name        = "score_transaction"
-          description = "Evaluates a payment transaction payload for fraud anomalies."
-        }
-      ]
-    })
-  }
-}
-
-# 2. Register a Spoke-Project Standard REST Agent into the Central Governance Hub
-# Allows a central Agent Egress Gateway (AGENT_TO_ANYWHERE) to govern cross-project traffic
-resource "google_agent_registry_service" "spoke_rest_agent" {
-  project      = var.central_project_id
-  location     = var.region
-  service_id   = "spoke-support-agent"
-  display_name = "Spoke Support REST Agent"
-  description  = "Remote REST agent registered from project ${var.spoke_project_id}."
-
-  agent_spec {
-    type = "NO_SPEC"
+  mcp_server_spec {
+    type    = "TOOL_SPEC"
+    content = file("${path.module}/../gke/customer_analytics_mcp/toolspec.json")
   }
 
   interfaces {
-    url              = "https://support-agent-xyz.${var.region}.run.app"
-    protocol_binding = "HTTP_JSON"
+    url              = "https://customer-analytics-mcp-${var.project_number}.${var.region}.run.app/mcp"
+    protocol_binding = "JSONRPC"
   }
 }
 
-# 3. Query a Registered Agent's Globally Unique URN via Terraform Data Source
-data "google_agent_registry_agent" "billing_agent" {
+# 2. Query the Application Team's Auto-Registered Cloud Run Agent URN
+data "google_agent_registry_agent" "revenue_insights_agent" {
   location = var.region
-  filter   = "displayName=\"Billing Triage Agent\""
+  filter   = "displayName=\"revenue-insights-agent\""
 }
 
-output "aws_agent_registry_resource" {
-  description = "Generated read-only Agent resource name for the AWS A2A agent."
-  value       = google_agent_registry_service.aws_fraud_a2a_agent.registry_resource
+output "customer_analytics_mcp_registry_resource" {
+  description = "Generated Agent Registry MCP Server resource name."
+  value       = google_agent_registry_service.customer_analytics_mcp.registry_resource
 }
 
-output "spoke_agent_registry_resource" {
-  description = "Generated read-only Agent resource name for the spoke REST agent."
-  value       = google_agent_registry_service.spoke_rest_agent.registry_resource
-}
-
-output "billing_agent_urn" {
-  description = "Globally unique URN (urn:agent:...) used for IAM and Agent Gateway policies."
-  value       = data.google_agent_registry_agent.billing_agent.urn
+output "revenue_insights_agent_urn" {
+  description = "Globally unique URN (urn:agent:...) of the Cloud Run ADK agent."
+  value       = data.google_agent_registry_agent.revenue_insights_agent.urn
 }
