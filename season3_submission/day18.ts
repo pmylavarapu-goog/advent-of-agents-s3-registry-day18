@@ -170,6 +170,8 @@ As Pillar One of Govern on **Gemini Enterprise Agent Platform**, **Agent Registr
 - **Zero-Touch Backfill and Hub-and-Spoke Onboarding**: Enabling the Agent Registry API automatically backfills Google-managed MCP servers like BigQuery and Knowledge Catalog alongside native **Gemini Enterprise** and **Agent Runtime** agents, while GKE workload labels, Cloud Run deploy flags, and spoke-project service registrations catalog custom and multi-cloud workloads into a central governance hub.
 - **Dynamic Discovery and Perimeter Governance**: Developers connect **Antigravity CLI** directly to the Agent Registry MCP server to discover existing tool schemas before writing duplicate code, application teams dynamically resolve MCP toolsets by logical name in **ADK** with zero hardcoded URLs, and business users import governed MCP tools into **Gemini Enterprise** in one click while **Agent Gateway** blocks destructive operations at the perimeter.
 
+**Try the End-to-End Demo**: Clone the [Day 18 Code Kata Repository](https://github.com/pmylavarapu-goog/advent-of-agents-s3-registry-day18) in Cloud Shell to run the 5-persona walkthrough across BigQuery, GKE, Antigravity CLI, ADK on Cloud Run, and Gemini Enterprise!
+
 **Resources:**
 
 - [Day 18 Code Kata Repository](https://github.com/pmylavarapu-goog/advent-of-agents-s3-registry-day18)
