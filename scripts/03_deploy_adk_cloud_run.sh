@@ -34,7 +34,7 @@ echo -e "  while eliminating brittle hardcoded service URLs across application c
 echo ""
 
 echo -e "${CYAN}${BOLD}[1/3] Inspecting ADK AgentRegistry Code (adk_agent/agent.py):${RESET}"
-sed -n '75,112p' "${REPO_ROOT}/adk_agent/agent.py"
+sed -n '102,141p' "${REPO_ROOT}/adk_agent/agent.py"
 
 echo ""
 echo -e "${CYAN}${BOLD}[2/3] Verifying ${AGENT_NAME} Auto-Registration & Identity in Agent Registry (${REGION}):${RESET}"

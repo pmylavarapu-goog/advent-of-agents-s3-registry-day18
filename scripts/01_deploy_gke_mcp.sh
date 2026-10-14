@@ -29,7 +29,9 @@ echo -e "  ${BOLD}modelcontextprotocol.info/urls${RESET} to the Kubernetes Deplo
 echo -e "  controller AUTOMATICALLY introspects the pod's /mcp endpoint and registers"
 echo -e "  ${BOLD}customer-analytics-mcp${RESET} and all 3 tools into Agent Registry!"
 echo -e "${CYAN}• Value Addition:${RESET} Zero manual YAML/JSON uploads in the console every time a"
-echo -e "  Data Engineer ships a new MCP tool to Kubernetes."
+echo -e "  Data Engineer ships a new MCP tool to Kubernetes — plus ${BOLD}gcloud agent-registry services create${RESET}"
+echo -e "  and ${BOLD}App Hub Host-Spoke${RESET} let you register external/multi-cloud endpoints (AWS, Azure, on-prem)"
+echo -e "  and aggregate across GCP projects (answering Customer Q1 & Q3)."
 echo ""
 
 echo -e "${CYAN}${BOLD}[1/3] Inspecting GKE Deployment Labels & Annotations (gke/customer_analytics_mcp/customer_analytics_mcp.yaml):${RESET}"
