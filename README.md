@@ -4,7 +4,7 @@
 
 > *"How do we maintain a single source of truth of all active agents, MCP servers, and tools across our organization — while letting Data Analysts, Data Engineers, Developers, Application Teams, Business Users, and Security Admins work in the Google Cloud surfaces they already love?"*
 
-This repository contains the live demo workloads, configurations, and step-by-step runnable scripts for **Day 18** of Google Cloud's **Advent of Agents (Season 3: Agent Governance & Security)** on **Gemini Enterprise Agent Platform**.
+This repository contains the live demo workloads, configurations, and step-by-step runnable scripts for **Day 18** of Google Cloud's **Advent of Agents (Season 3: Agent Governance & Security)** on **Gemini platform**.
 
 ---
 
