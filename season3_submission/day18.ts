@@ -3,26 +3,55 @@ import { DayContent } from '../types';
 export const day18: DayContent = {
   day: 18,
   title: "Agent Registry: Single Source of Truth for Agents & Tools",
-  summary: "Discover, connect, and govern every AI agent, MCP server, and tool across your organization from a single automatic catalog in Gemini Enterprise Agent Platform.",
-  tags: ["Agent Registry", "Governance", "MCP", "ADK"],
+  summary: "Discover, connect, and govern every AI agent, MCP server, Skills and Endpoints across your organization.",
+  tags: ["Phase 4: Agent Registry", "Governance", "MCP", "ADK"],
   icon: "🗂️",
-  resourceLink: "https://docs.cloud.google.com/agent-registry/overview",
+  resourceLink: "https://g.dev/cloud/adventofagents-season3-agent-registry",
   codeSnippets: [
     {
-      title: "1. Label GKE MCP Server & Discover Tools via Antigravity CLI",
-      filename: "customer_analytics_mcp.yaml",
+      title: "1. Start Here: Run the End-to-End Demo (quickstart.sh)",
+      filename: "quickstart.sh",
+      language: "bash",
+      code: `# START HERE: Run these commands in Cloud Shell or your terminal to deploy and register
+# the custom GKE MCP server, discover tools via Antigravity CLI, deploy the ADK agent on
+# Cloud Run, and attach the Agent Gateway policy.
+# Snippets 2, 3, and 4 are for reference only; the repository cloned below already contains them.
+
+# 1. Clone the Day 18 Code Kata repository and configure your project variables:
+git clone https://github.com/pmylavarapu-goog/advent-of-agents-s3-registry-day18.git
+cd advent-of-agents-s3-registry-day18
+cp env.sh.example env.sh   # Edit env.sh to set PROJECT_ID, PROJECT_NUMBER, and ORG_ID
+source env.sh
+
+# 2. Deploy the custom FastMCP server on GKE (auto-registers via the MCP_SERVER label)
+#    and publish its endpoint specification in Agent Registry:
+./scripts/01_deploy_gke_mcp.sh
+./scripts/02_register_hub_spoke_mcp.sh
+
+# 3. Connect Antigravity / Gemini CLI to the Agent Registry MCP server to discover existing tools:
+mkdir -p ~/.gemini/config
+envsubst < antigravity/mcp_config.json > ~/.gemini/config/mcp_config.json
+gemini -p "Use the agent-registry MCP server to list all registered MCP servers and tools."
+
+# 4. Deploy the ADK agent to Cloud Run (dynamically binds customer-analytics-mcp by name
+#    and auto-registers the agent with a cryptographic SPIFFE identity):
+./scripts/03_deploy_adk_cloud_run.sh
+
+# 5. Attach the tool-level IAM Access Policy at Agent Gateway:
+./scripts/04_attach_gateway_policy.sh`
+    },
+    {
+      title: "2. Reference: GKE MCP Server Label (gke/customer_analytics_mcp/deployment.yaml)",
+      filename: "gke/customer_analytics_mcp/deployment.yaml",
       language: "yaml",
-      code: `# Quickstart — Clone the Day 18 Code Kata repository:
-#   git clone https://github.com/pmylavarapu-goog/advent-of-agents-s3-registry-day18.git
-#   cd advent-of-agents-s3-registry-day18
-#
-# Step 2: Deploy a custom FastMCP server on GKE with the MCP_SERVER discovery label
+      code: `# REFERENCE ONLY: Excerpt of gke/customer_analytics_mcp/deployment.yaml from the demo repo.
+# You do not need to copy it manually; ./scripts/01_deploy_gke_mcp.sh in Snippet 1 applies it for you.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: customer-analytics-mcp
   labels:
-    # Instructs GKE's in-cluster controller to register the workload in Agent Registry
+    # Instructs GKE's in-cluster controller to automatically register the workload in Agent Registry
     registry.gke.io/functional-type: "MCP_SERVER"
   annotations:
     # Enables automatic introspection of the Streamable HTTP (/mcp) endpoint & tool schemas
@@ -46,33 +75,22 @@ spec:
       - name: mcp-server
         image: us-central1-docker.pkg.dev/YOUR_PROJECT_ID/mcp/customer-analytics-mcp:1.0.0
         ports:
-        - containerPort: 8080
----
-# Step 3: Connect Antigravity CLI (~/.gemini/config/mcp_config.json) to Agent Registry MCP:
-# {
-#   "mcpServers": {
-#     "agent-registry": {
-#       "serverUrl": "https://agentregistry.googleapis.com/mcp",
-#       "headers": { "X-Goog-User-Project": "YOUR_PROJECT_ID" }
-#     }
-#   }
-# }
-# Publish spoke-project or multi-cloud (AWS, Azure, on-prem) endpoints into the Central Hub:
-# gcloud beta agent-registry services create customer-analytics-mcp \\
-#   --location=us-central1 --mcp-server-spec-file=mcp_server_spec.json`
+        - containerPort: 8080`
     },
     {
-      title: "2. Dynamically Bind MCP Tools in ADK & Auto-Register on Cloud Run",
-      filename: "agent.py",
+      title: "3. Reference: Dynamic MCP Toolset Binding in ADK (adk_agent/agent.py)",
+      filename: "adk_agent/agent.py",
       language: "python",
-      code: `import os
+      code: `# REFERENCE ONLY: Excerpt of adk_agent/agent.py from the demo repo.
+# You do not need to copy it manually; ./scripts/03_deploy_adk_cloud_run.sh in Snippet 1 deploys it for you.
+import os
 from google.adk.agents.llm_agent import LlmAgent
 from google.adk.integrations.agent_registry import AgentRegistry
 
 GCP_PROJECT_ID = os.environ.get("GOOGLE_CLOUD_PROJECT", "YOUR_PROJECT_ID")
 GCP_LOCATION = os.environ.get("GOOGLE_CLOUD_LOCATION", "us-central1")
 
-# Step 4: Dynamically resolve customer-analytics-mcp by name (zero hardcoded URLs!)
+# Dynamically resolve customer-analytics-mcp by name from Agent Registry (zero hardcoded URLs!)
 registry = AgentRegistry(
     project_id=GCP_PROJECT_ID,
     location=GCP_LOCATION,
@@ -87,22 +105,15 @@ root_agent = LlmAgent(
     description="Enterprise Revenue Insights Agent built with ADK and Agent Registry.",
     instruction="Use tools from customer-analytics-mcp to answer regional revenue KPI queries.",
     tools=[mcp_toolset],
-)
-
-# Deploy to Cloud Run with automatic SPIFFE Agent Identity + Agent Registry cataloging:
-# gcloud beta run deploy revenue-insights-agent \\
-#   --source=./adk_agent \\
-#   --region=us-central1 \\
-#   --functional-type=agent \\
-#   --identity-type=agent-identity`
+)`
     },
     {
-      title: "3. Enforce Tool-Level Least Privilege at Agent Gateway",
-      filename: "day18-analytics-uap-rules.json",
+      title: "4. Reference: Tool-Level Least Privilege Policy (gateway/day18-analytics-uap-rules.json)",
+      filename: "gateway/day18-analytics-uap-rules.json",
       language: "json",
       code: `[
   {
-    "description": "Rule 1: Allow Gemini Enterprise assistant to perform MCP discovery on registered endpoints",
+    "description": "REFERENCE ONLY (gateway/day18-analytics-uap-rules.json in repo, applied by 04_attach_gateway_policy.sh) — Rule 1: Allow MCP discovery on registered endpoints",
     "effect": "ALLOW",
     "principals": [
       "principal://agents.global.org-YOUR_ORG_ID.system.id.goog/resources/discoveryengine/projects/YOUR_PROJECT_NUMBER/locations/global/engines/advent-day18-ge/assistants/default_assistant/agents/default/core_assistant"
@@ -137,47 +148,50 @@ root_agent = LlmAgent(
   links: [
     {
       label: "Day 18 Code Kata Repository",
-      url: "https://github.com/pmylavarapu-goog/advent-of-agents-s3-registry-day18",
+      url: "https://g.dev/cloud/adventofagents-season3-day18-demo",
       description: "End-to-end Agent Registry demo across GKE, Antigravity CLI, ADK on Cloud Run, and Agent Gateway."
     },
     {
       label: "Agent Registry Overview",
-      url: "https://docs.cloud.google.com/agent-registry/overview",
+      url: "https://g.dev/cloud/adventofagents-season3-agent-registry",
       description: "Centralized catalog to store, discover, and govern agents, MCP servers, and tools."
     },
     {
       label: "Automatic Registration Quickstart",
-      url: "https://docs.cloud.google.com/agent-registry/automatic-registration",
+      url: "https://g.dev/cloud/adventofagents-season3-docs-agent-registry-automatic-registration",
       description: "Configure zero-touch automatic registration across BigQuery, GKE, Cloud Run, and Agent Runtime."
     },
     {
       label: "Connect ADK Agents to Registered Tools",
-      url: "https://docs.cloud.google.com/agent-registry/connect-agents-tools",
+      url: "https://g.dev/cloud/adventofagents-season3-docs-agent-registry-authenticate-toolsets",
       description: "Dynamically resolve and bind registered MCP toolsets in Python with zero hardcoded URLs."
     }
   ],
   description: `
 **Day 18 of Google's Advent of Agents — Season 3**
 
-Building and deploying your first production agent is straightforward when a single team owns the stack. Six months later, when dozens of Data Engineering, Application, and Line-of-Business teams are shipping hundreds of agents and Model Context Protocol (MCP) servers across isolated Google Cloud projects and external clouds, ungoverned sprawl takes over. Developers waste weeks rebuilding MCP servers that already exist and hardcoding brittle endpoint URLs into application code, while platform admins and security leaders have no central inventory to audit permissions or block destructive tools.
+Building and deploying your first production agent is straightforward when a single team owns the stack. Six months later, when dozens of Data Engineering, Application, and Line-of-Business teams are shipping hundreds of agents and Model Context Protocol (MCP) servers across isolated Google Cloud projects and external clouds, ungoverned sprawl takes over.
+
+Developers waste weeks rebuilding MCP servers that already exist and hardcoding brittle endpoint URLs into application code, while platform admins and security leaders have no central inventory to audit permissions or block destructive tools.
 
 **How It Works**
 
-As Pillar One of Govern on **Gemini Enterprise Agent Platform**, **Agent Registry** shifts discovery and governance out of developer code and into the platform as your organization's **Single Source of Truth**. Every registered agent, MCP server, and tool receives an immutable canonical handle linked to its cryptographic SPIFFE **Agent Identity** from Day 5. Platform admins govern the full cross-project catalog using a hub-and-spoke model, while each team's application only discovers and binds the curated tools authorized for its boundary.
+**Google Cloud Agent Registry** is a centralized catalog in **Gemini Enterprise Agent Platform** for storing, discovering, and governing every AI agent, MCP server, skill, and endpoint across your organization. Instead of maintaining manual spreadsheets or hardcoding fragile URLs in application code, platform teams curate a single governed catalog while application teams dynamically discover and bind only the tools authorized for their boundary.
 
-![Agent Registry Architecture Across 5 Personas](/s03/s3-day18-agent-registry.png)
+![Agent Registry: Register, Discover & Govern](/s03/s3-day18-agent-registry.png)
 
-- **Zero-Touch Backfill and Hub-and-Spoke Onboarding**: Enabling the Agent Registry API automatically backfills Google-managed MCP servers like BigQuery and Knowledge Catalog alongside native **Gemini Enterprise** and **Agent Runtime** agents, while GKE workload labels, Cloud Run deploy flags, and spoke-project service registrations catalog custom and multi-cloud workloads into a central governance hub.
-- **Dynamic Discovery and Perimeter Governance**: Developers connect **Antigravity CLI** directly to the Agent Registry MCP server to discover existing tool schemas before writing duplicate code, application teams dynamically resolve MCP toolsets by logical name in **ADK** with zero hardcoded URLs, and business users import governed MCP tools into **Gemini Enterprise** in one click while **Agent Gateway** blocks destructive operations at the perimeter.
+- **1. Register Assets Automatically or by Spec**: Automatically register agents and MCP servers from **Agent Runtime**, **Gemini Enterprise**, **Cloud Run** (\`--functional-type=agent\`), **GKE** (\`MCP_SERVER\` label), and enabled Google-managed MCP servers like BigQuery, or register custom endpoints and skills via \`gcloud beta agent-registry\`.
+- **2. Discover Tools in Antigravity CLI**: Connect **Antigravity CLI** to the Agent Registry MCP server (\`agentregistry.googleapis.com/mcp\`) to search registered agents, MCP servers, and tool schemas before writing duplicate code.
+- **3. Connect Dynamically in ADK & Govern at the Gateway**: Resolve MCP toolsets by logical name in **ADK** using \`AgentRegistry.get_mcp_toolset()\` with zero hardcoded URLs, while **Agent Gateway** enforces tool-level allowlists linked to each agent's cryptographic SPIFFE **Agent Identity** from Day 5.
 
-**Try the End-to-End Demo**: Clone the [Day 18 Code Kata Repository](https://github.com/pmylavarapu-goog/advent-of-agents-s3-registry-day18) in Cloud Shell to run the 5-persona walkthrough across BigQuery, GKE, Antigravity CLI, ADK on Cloud Run, and Gemini Enterprise!
+**Try the End-to-End Demo**: Clone the [Day 18 Code Kata Repository](https://g.dev/cloud/adventofagents-season3-day18-demo) in Cloud Shell to run the walkthrough across BigQuery, GKE, Antigravity CLI, ADK on Cloud Run, and Gemini Enterprise!
 
 **Resources:**
 
-- [Day 18 Code Kata Repository](https://github.com/pmylavarapu-goog/advent-of-agents-s3-registry-day18)
-- [Agent Registry Overview](https://docs.cloud.google.com/agent-registry/overview)
-- [Automatic Registration Quickstart](https://docs.cloud.google.com/agent-registry/automatic-registration)
-- [Connect ADK Agents to Registered Tools](https://docs.cloud.google.com/agent-registry/connect-agents-tools)
+- [Day 18 Code Kata Repository](https://g.dev/cloud/adventofagents-season3-day18-demo)
+- [Agent Registry Overview](https://g.dev/cloud/adventofagents-season3-agent-registry)
+- [Automatic Registration Quickstart](https://g.dev/cloud/adventofagents-season3-docs-agent-registry-automatic-registration)
+- [Connect ADK Agents to Registered Tools](https://g.dev/cloud/adventofagents-season3-docs-agent-registry-authenticate-toolsets)
 `,
   videoURL: "TODO"
 };
